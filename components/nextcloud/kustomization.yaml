@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# set this namespace on all resources
+namespace: nextcloud
+
+
+# https://github.com/nextcloud/helm/tree/main/charts/nextcloud
+# https://artifacthub.io/packages/helm/nextcloud/nextcloud
+helmcharts:
+  - name: nextcloud
+    repo: https://nextcloud.github.io/helm/
+    version: 7.0.2
+    releaseName: nextcloud
+    valuesFile: values.yaml
+resources:
+  - namespace.yaml
+  - pvc-wunderhort_programming.yaml
+  - pv-wunderhort_programming.yaml
+  - configmap-apache-config.yaml
+
+patches:
+  # the helmchart will set a default securityContext including 
+  # an fsGroup directive on the deployment
+  # fsGroup leads to the kubelet or CSI atempting to
+  # "correct" the permissions of a mounted volume
+  # removing the fsGroup directive stops that
+  - path: patch-remove-securitycontext.yaml

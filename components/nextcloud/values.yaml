@@ -1,0 +1,104 @@
+# https://github.com/nextcloud/helm/blob/main/charts/nextcloud/values.yaml
+
+image:
+  flavor: apache
+
+# for debugging
+#livenessProbe:
+#  enabled: false
+#readinessProbe:
+#  enabled: false
+
+# this applies to the nextcloud deployment
+# we can also apply it to the nextcloud container in the deployment
+# using nextcloud.securityContext
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  supplementalGroups:
+    - 33
+  # have group 32 which corresponds to www-data, but also 1000, which is leon
+  #runAsGroup:
+  # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+  # this is exactly what we want
+  #fsGroup:
+  #supplementalGroups:
+  #  - 32
+
+nextcloud:
+  host: nextcloud.irminsul
+  # to match the overriden port in the apache config
+  containerPort: 8080
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-secrets
+    usernameKey: nextcloud-username
+    passwordKey: nextcloud-password
+    # i do not think we need those atm
+    #tokenKey: ""
+    #smtpUsernameKey: smtp-username
+    #smtpPasswordKey: smtp-password
+    #smtpHostKey: smtp-host
+  extraVolumes:
+    - name: nextcloud-wunderhort-programming-static
+      persistentVolumeClaim:
+        claimName: nextcloud-wunderhort-programming-static
+    - name: apache-config
+      configMap:
+        name: apache-config
+  extraVolumeMounts:
+     - name: nextcloud-wunderhort-programming-static
+       mountPath: /wunderhort/programming
+     # we change the apache ports to 8080 8443
+     - name: apache-config
+       mountPath: /etc/apache2/sites-available/000-default.conf
+       subPath: 000-default.conf
+     - name: apache-config
+       mountPath: /etc/apache2/ports.conf
+       subPath: ports.conf
+
+persistence:
+  # persist nextcloud data and config
+  enabled: true
+  # store data on a separate volume
+  nextcloudData:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 20Gi
+
+internalDatabase:
+  enabled: false
+
+externalDatabase:
+  enabled: true
+  type: postgresql
+  host: nextcloud-postgresql
+  database: nextcloud
+  existingSecret:
+    enabled: true
+    secretName: postgresql-secrets
+    usernameKey: user-name
+    passwordKey: user-password
+    hostKey:  database-host
+    databaseKey: database-name
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      auth:
+        # Name of existing secret to use for PostgreSQL credentials.
+        existingSecret: postgresql-secrets
+        secretKeys:
+          adminPasswordKey: admin-password
+          userPasswordKey: user-password
+          # not needed
+          #replicationPasswordKey: ""
+  primary:
+    persistence:
+      enabled: true
+
+service:
+  type: LoadBalancer
+  annotations:
+    kube-vip.io/loadbalancerIPs: 192.168.249.5
