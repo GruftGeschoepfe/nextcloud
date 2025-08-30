@@ -18,6 +18,9 @@ securityContext:
   supplementalGroups:
     - 1000
 
+cronjob:
+  enabled: true
+
 nextcloud:
   host: nextcloud.irminsul
   # to match the overriden port in the apache config
