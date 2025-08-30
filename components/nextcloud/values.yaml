@@ -13,17 +13,10 @@ image:
 # we can also apply it to the nextcloud container in the deployment
 # using nextcloud.securityContext
 securityContext:
-  runAsUser: 1000
-  runAsGroup: 1000
+  runAsUser: 33
+  runAsGroup: 33
   supplementalGroups:
-    - 33
-  # have group 32 which corresponds to www-data, but also 1000, which is leon
-  #runAsGroup:
-  # If unset, the Kubelet will not modify the ownership and permissions of any volume.
-  # this is exactly what we want
-  #fsGroup:
-  #supplementalGroups:
-  #  - 32
+    - 1000
 
 nextcloud:
   host: nextcloud.irminsul

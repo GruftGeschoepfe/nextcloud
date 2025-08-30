@@ -330,10 +330,10 @@ spec:
         resources: {}
         securityContext: {}
       securityContext:
-        runAsGroup: 1000
-        runAsUser: 1000
+        runAsGroup: 33
+        runAsUser: 33
         supplementalGroups:
-        - 33
+        - 1000
       volumes:
       - name: nextcloud-main
         persistentVolumeClaim:
